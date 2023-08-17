@@ -6,26 +6,27 @@ import chessAI as ai
 import time
 # from pstats import SortKey
 
-DEPTH = 3
+DEPTH = 2
 
 def main():
     # initiate classical chess board
     board = chess.Board()
-    pvc(board)
+    cvc(board)
 
-def cvc(board):
+def cvc(board: chess.Board):
     game = chess.pgn.Game()
     node = game
     game_start = time.time()
+    tt = ai.TranspositionTable()
     while not board.is_game_over():
         move_start = time.time()
-        move = ai.find_best_move(board, DEPTH)
+        move = ai.ai_move(board, DEPTH, tt)
         board.push(move)
         print(board.fen())
         node = node.add_variation(move)
         print(game)
         print(f'seconds taken: {time.time() - move_start}')
-        print(f'eval: {ai.evaluation(board)}\n')
+        print(f'eval: {ai.calc_eval(board)}\n')
 
     print(f'total time: {time.time() - game_start}')
 
@@ -33,9 +34,10 @@ def cvc(board):
     print(board.result())
 
 
-def pvc(board):
+def pvc(board: chess.Board):
     game = chess.pgn.Game()
     node = game
+    tt = ai.TranspositionTable()
     player_color = input("pick (white or black): ").lower()
     if player_color == "white":
             player_color = chess.WHITE
@@ -45,14 +47,14 @@ def pvc(board):
         print("Error: invalid choice")
         quit()
     while not board.is_game_over():
-        print(f'eval: {ai.evaluation(board)}\n')
+        print(f'eval: {ai.calc_eval(board)}\n')
         if board.turn == player_color:
             move = chess.Move.from_uci(input("your move: "))
             if move in board.legal_moves:
                 board.push(move)
                 node = node.add_variation(move)
         else:
-            move = ai.find_best_move(board, DEPTH)
+            move = ai.ai_move(board, DEPTH, tt)
             board.push(move)
             node = node.add_variation(move)
             print("AI's move: " + chess.Move.uci(move))
